@@ -3,15 +3,15 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+
 	"net/http"
-	"os"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/cjoshmartin/virtual-experience-api/database"
+	"github.com/cjoshmartin/virtual-experience-api/webserver"
+	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var client *mongo.Client
@@ -85,27 +85,158 @@ func CreatePersonEndpoint(response http.ResponseWriter, request *http.Request) {
 
 // 	json.NewEncoder(response).Encode(people)
 // }
+// func main() {
+// 	fmt.Println("Starting the application...")
+// 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+// 	databaseName, exists := os.LookupEnv("DATABASE_CONTAINER_NAME")
+
+// 	if !exists {
+// 		databaseName = "0.0.0.0"
+// 	}
+// 	mongodbURI := "mongodb://" + databaseName
+
+// 	clientOptions := options.Client().ApplyURI(mongodbURI)
+
+// 	client, _ = mongo.Connect(ctx, clientOptions)
+// 	router := mux.NewRouter()
+
+// 	router.HandleFunc("/person", CreatePersonEndpoint).Methods("POST")
+// 	// router.HandleFunc("/people", GetPeopleEndpoint).Methods("GET")
+// 	// router.HandleFunc("/person/{id}", GetPersonEndpoint).Methods("GET")
+
+// 	fmt.Print("Listening on port: 12345")
+// 	http.ListenAndServe(":12345", router)
+
+// }
+
 func main() {
-	fmt.Println("Starting the application...")
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	webserver.RunnerRunner()
+	webserver.RunnerRunnerRunner()
 
-	databaseName, exists := os.LookupEnv("DATABASE_CONTAINER_NAME")
+	r := gin.Default()
 
-	if !exists {
-		databaseName = "0.0.0.0"
+	orders := r.Group("/order")
+	{
+		orders.POST("/create", func(c *gin.Context) {
+			var order database.Order
+
+			if err := c.ShouldBindJSON(&order); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
+
+			// if order.PurchaseTime != nil {
+			// set the current time
+			// }
+
+			c.JSON(http.StatusOK, order)
+		})
+		orders.GET("/{id}", func(c *gin.Context) {
+
+			c.JSON(http.StatusOK, gin.H{"message": "pong"})
+		})
+		orders.POST("/{id}/update", func(c *gin.Context) {
+			var order database.Order
+
+			if err := c.ShouldBindJSON(&order); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
+
+			// if order.PurchaseTime != nil {
+			// set the current time
+			// }
+
+			c.JSON(http.StatusOK, order)
+		})
 	}
-	mongodbURI := "mongodb://" + databaseName
 
-	clientOptions := options.Client().ApplyURI(mongodbURI)
+	chefs := r.Group("/chef")
+	{
+		chefs.POST("/create", func(c *gin.Context) {
+			var chef database.Chef
 
-	client, _ = mongo.Connect(ctx, clientOptions)
-	router := mux.NewRouter()
+			if err := c.ShouldBindJSON(&chef); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
 
-	router.HandleFunc("/person", CreatePersonEndpoint).Methods("POST")
-	// router.HandleFunc("/people", GetPeopleEndpoint).Methods("GET")
-	// router.HandleFunc("/person/{id}", GetPersonEndpoint).Methods("GET")
+			c.JSON(http.StatusOK, chef)
+		})
+		chefs.GET("/{id}", func(c *gin.Context) {
 
-	fmt.Print("Listening on port: 12345")
-	http.ListenAndServe(":12345", router)
+			c.JSON(http.StatusOK, gin.H{"message": "pong"})
+		})
+		chefs.POST("/{id}/update", func(c *gin.Context) {
+			var chef database.Chef
 
+			if err := c.ShouldBindJSON(&chef); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
+
+			c.JSON(http.StatusOK, chef)
+		})
+	}
+
+	users := r.Group("/user")
+	{
+		users.POST("/create", func(c *gin.Context) {
+			var user database.User
+
+			if err := c.ShouldBindJSON(&user); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
+
+			c.JSON(http.StatusOK, user)
+		})
+		users.GET("/{id}", func(c *gin.Context) {
+
+			c.JSON(http.StatusOK, gin.H{"message": "pong"})
+		})
+
+		users.POST("/{id}/update", func(c *gin.Context) {
+			var user database.User
+
+			if err := c.ShouldBindJSON(&user); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
+
+			c.JSON(http.StatusOK, user)
+		})
+	}
+
+	experiences := r.Group("/experience")
+	{
+		experiences.POST("/create", func(c *gin.Context) {
+			var experience database.Experience
+
+			if err := c.ShouldBindJSON(&experience); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
+
+			c.JSON(http.StatusOK, experience)
+		})
+		experiences.GET("/{id}", func(c *gin.Context) {
+
+			c.JSON(http.StatusOK, gin.H{"message": "pong"})
+		})
+
+		experiences.POST("/{id}/update", func(c *gin.Context) { // update record
+			var experience database.Experience
+
+			if err := c.ShouldBindJSON(&experience); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
+
+			c.JSON(http.StatusOK, experience)
+		})
+	}
+
+	r.Run()
 }
