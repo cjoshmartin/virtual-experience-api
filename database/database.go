@@ -81,6 +81,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -107,17 +108,21 @@ func GetDatabaseURI() string {
 
 	if !exists {
 		databaseName = "0.0.0.0"
+		log.Println("No running server in a docker container")
 	}
 
-	return "mongodb://" + databaseName
+	dbUrI := "mongodb://" + databaseName
 
+	log.Println("DB URL is: '" + dbUrI + "'")
+
+	return dbUrI
 }
 
 func (databaseInstance *DatabaseInstance) Connect() {
 	mongodbURI := GetDatabaseURI()
 	client, err := mongo.NewClient(options.Client().ApplyURI(mongodbURI))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
@@ -159,7 +164,7 @@ func (databaseInstance *DatabaseInstance) ListDatabases() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Databases available for use: '" + strings.Join(databases, ",")+"'")
+	log.Println("Databases available for use: '" + strings.Join(databases, ", ") + "'")
 }
 
 func StartDatebase() *DatabaseInstance {
@@ -172,4 +177,12 @@ func StartDatebase() *DatabaseInstance {
 	log.Println("Database started successfully")
 
 	return &databaseInstance
+}
+
+func GetID(hexString string) primitive.ObjectID {
+	_id, err := primitive.ObjectIDFromHex(hexString)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return _id
 }

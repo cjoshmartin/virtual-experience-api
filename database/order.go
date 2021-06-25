@@ -1,55 +1,53 @@
 package database
 
 import (
-	// "log"
-	// "fmt"
+	"log"
 
-	// "go.mongodb.org/mongo-driver/bson"
-	// "go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type OrderInstanceAccessor struct{
-	instance  DatabaseInstance
-
+type OrderInstanceAccessor struct {
+	instance   *DatabaseInstance
+	collection *mongo.Collection
 }
 
+func OrderInit(instance *DatabaseInstance) *OrderInstanceAccessor {
+	orderCollection := OrderInstanceAccessor{instance: instance}
+	orderCollection.InitCollection()
 
-func (orderInstance OrderInstanceAccessor) GetCollection() *mongo.Collection {
-	return orderInstance.instance.database.Collection("orders")
+	return &orderCollection
 }
 
-// func (orderInstance OrderInstanceAccessor) Create(order Order) (*mongo.InsertOneResult, error) {
-// 	orders := DatabaseAccessor.GetCollection()
+func (orderInstance *OrderInstanceAccessor) InitCollection() {
+	orderInstance.collection = orderInstance.instance.database.Collection("orders")
+}
 
-// 	return orders.InsertOne(ctx, order)
-// }
+func (orderInstance *OrderInstanceAccessor) Create(order Order) (*mongo.InsertOneResult, error) {
+	return orderInstance.collection.InsertOne(orderInstance.instance.ctx, order)
+}
 
-// func FindOrder(id string) (Order, error) {
-// 	orders := GetOrdersCollection()
+func (orderInstance *OrderInstanceAccessor) FindOrder(hexString string) (Order, error) {
+	id := GetID(hexString)
 
-// 	var order Order
+	var order Order
 
-// 	err := orders.FindOne(ctx, Order{ID: id}).Decode(&order)
+	err := orderInstance.collection.FindOne(orderInstance.instance.ctx, bson.M{"_id": id}).Decode(&order)
 
-// 	return order, err
-// }
+	return order, err
+}
 
-// func UpdateRecord(id string, data bson.D){
-// 	orders := GetOrdersCollection()
+func (orderInstance *OrderInstanceAccessor) UpdateRecord(hexString string, data bson.D) (*mongo.UpdateResult, error) {
+	id := GetID(hexString)
 
-// 	_id, _ := primitive.ObjectIDFromHex(id)
+	result, err := orderInstance.collection.UpdateOne(orderInstance.instance.ctx,
+		bson.M{"_id": id},
+		bson.D{
+			{"$set", data},
+		},
+	)
 
-// 	result, err := orders.UpdateOne(ctx,
-// 		bson.M{"_id": id},
-// 		bson.D{
-// 			{"$set", data},
-// 		},
-// 	)
+	log.Printf("Updated %v Documents!\n", result.ModifiedCount)
 
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	fmt.Printf("Updated %v Documents!\n", result.ModifiedCount)
-// }
+	return result, err
+}

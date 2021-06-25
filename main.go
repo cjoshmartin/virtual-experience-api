@@ -110,12 +110,16 @@ func CreatePersonEndpoint(response http.ResponseWriter, request *http.Request) {
 
 // }
 
+// "60d63e58e4e0161200df7db5"
+// "60d640fa38dcee4d59b232b2"
+
 func main() {
 	webserver.RunnerRunner()
 	webserver.RunnerRunnerRunner()
 	mongoDatadatabase := database.StartDatebase()
-
 	defer mongoDatadatabase.CloseConnection()
+
+	orderCollection := database.OrderInit(mongoDatadatabase)
 
 	r := gin.Default()
 
@@ -133,12 +137,27 @@ func main() {
 			// set the current time
 			// }
 
+			result, err := orderCollection.Create(order)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
+
+			c.JSON(http.StatusOK, result)
+		})
+
+		orders.GET("/:id", func(c *gin.Context) {
+			id := c.Param("id")
+
+			order, err := orderCollection.FindOrder(id)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
+
 			c.JSON(http.StatusOK, order)
 		})
-		orders.GET("/{id}", func(c *gin.Context) {
 
-			c.JSON(http.StatusOK, gin.H{"message": "pong"})
-		})
 		orders.POST("/{id}/update", func(c *gin.Context) {
 			var order database.Order
 
