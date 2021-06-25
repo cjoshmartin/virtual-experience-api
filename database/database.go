@@ -7,7 +7,6 @@ package database
 // if err != nil {
 // 	log.Fatal(err)
 // }
-// fmt.Println(databases)
 
 // inserting records into database
 
@@ -76,17 +75,31 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
-
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 var client *mongo.Client
+
+type DatabaseAccessor interface {
+	GetCollection() *mongo.Collection
+	Create(order Order) (*mongo.InsertOneResult, error)
+	Find(id string) (Order, error)
+	Update(id string, data bson.D)
+}
+
+type DatabaseInstance struct {
+	database *mongo.Collection
+	ctx      context.Context
+	client   *mongo.Client
+}
 
 func GetDatabaseURI() string {
 	databaseName, exists := os.LookupEnv("DATABASE_CONTAINER_NAME")
@@ -121,4 +134,16 @@ func StartDatebase() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func ListDatabases(client *mongo.Client, ctx context.Context) {
+	databases, err := client.ListDatabaseNames(ctx, bson.M{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(databases)
+}
+
+func GetDatabase(client *mongo.Client) *mongo.Database {
+	return client.Database("quickstart")
 }
