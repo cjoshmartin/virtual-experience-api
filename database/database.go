@@ -37,7 +37,7 @@ package database
 // if err != nil {
 // 	log.Fatal(err)
 // }
-// fmt.Printf("Inserted %v documents into episode collection!\n", len(episodeResult.InsertedIDs))
+// log.Printf("Inserted %v documents into episode collection!\n", len(episodeResult.InsertedIDs))
 
 // Looking for records
 // quickstartDatabase := client.Database("quickstart")
@@ -55,7 +55,7 @@ package database
 // 	if err = cursor.Decode(&podcast); err != nil {
 // 		log.Fatal(err)
 // 	}
-// 	fmt.Println(podcast)
+// 	log.Println(podcast)
 // }
 
 // cursor, err = episodesCollection.Find(ctx, bson.M{})
@@ -70,14 +70,14 @@ package database
 // 	if err = cursor.Decode(&episode); err != nil {
 // 		log.Fatal(err)
 // 	}
-// 	fmt.Println(episode)
+// 	log.Println(episode)
 // }
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -96,9 +96,10 @@ type DatabaseAccessor interface {
 }
 
 type DatabaseInstance struct {
-	database *mongo.Collection
-	ctx      context.Context
-	client   *mongo.Client
+	database   *mongo.Database
+	collection *mongo.Collection
+	ctx        context.Context
+	client     *mongo.Client
 }
 
 func GetDatabaseURI() string {
@@ -112,15 +113,14 @@ func GetDatabaseURI() string {
 
 }
 
-func StartDatebase() {
-
+func (databaseInstance *DatabaseInstance) Connect() {
 	mongodbURI := GetDatabaseURI()
 	client, err := mongo.NewClient(options.Client().ApplyURI(mongodbURI))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 
 	err = client.Connect(ctx)
 
@@ -128,22 +128,48 @@ func StartDatebase() {
 		log.Fatal(err)
 	}
 
-	defer client.Disconnect(ctx)
-
 	err = client.Ping(ctx, readpref.Primary())
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	databaseInstance.client = client
+	databaseInstance.ctx = ctx
 }
 
-func ListDatabases(client *mongo.Client, ctx context.Context) {
-	databases, err := client.ListDatabaseNames(ctx, bson.M{})
+func (databaseInstance *DatabaseInstance) CloseConnection() {
+	defer client.Disconnect(databaseInstance.ctx)
+}
+
+func (databaseInstance *DatabaseInstance) SetDatabase() {
+	databaseName, exists := os.LookupEnv("MONGO_DB_NAME")
+
+	if !exists {
+		log.Fatalln("No database name found in environment.Please set `MONGO_DB_NAME`")
+	} else {
+
+		log.Println("Found  wanted database name in enviroment '" + databaseName + "'")
+	}
+
+	databaseInstance.database = databaseInstance.client.Database(databaseName)
+}
+
+func (databaseInstance *DatabaseInstance) ListDatabases() {
+	databases, err := databaseInstance.client.ListDatabaseNames(databaseInstance.ctx, bson.M{})
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(databases)
+	log.Println("Databases available for use: '" + strings.Join(databases, ",")+"'")
 }
 
-func GetDatabase(client *mongo.Client) *mongo.Database {
-	return client.Database("quickstart")
+func StartDatebase() *DatabaseInstance {
+	databaseInstance := DatabaseInstance{}
+
+	log.Println("Starting database...")
+	databaseInstance.Connect()
+	databaseInstance.ListDatabases()
+	databaseInstance.SetDatabase()
+	log.Println("Database started successfully")
+
+	return &databaseInstance
 }

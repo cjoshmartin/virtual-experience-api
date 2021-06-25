@@ -113,6 +113,9 @@ func CreatePersonEndpoint(response http.ResponseWriter, request *http.Request) {
 func main() {
 	webserver.RunnerRunner()
 	webserver.RunnerRunnerRunner()
+	mongoDatadatabase := database.StartDatebase()
+
+	defer mongoDatadatabase.CloseConnection()
 
 	r := gin.Default()
 
