@@ -116,10 +116,8 @@ func CreatePersonEndpoint(response http.ResponseWriter, request *http.Request) {
 func main() {
 	webserver.RunnerRunner()
 	webserver.RunnerRunnerRunner()
-	mongoDatadatabase := database.StartDatebase()
-	defer mongoDatadatabase.CloseConnection()
-
-	orderCollection := database.OrderInit(mongoDatadatabase)
+	mongoDatabase := database.StartDatebase()
+	orderCollection := database.OrderInit(mongoDatabase)
 
 	r := gin.Default()
 
@@ -157,7 +155,6 @@ func main() {
 
 			c.JSON(http.StatusOK, order)
 		})
-
 		orders.POST("/{id}/update", func(c *gin.Context) {
 			var order database.Order
 

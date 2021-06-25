@@ -89,18 +89,12 @@ import (
 
 var client *mongo.Client
 
-type DatabaseAccessor interface {
-	GetCollection() *mongo.Collection
-	Create(order Order) (*mongo.InsertOneResult, error)
-	Find(id string) (Order, error)
-	Update(id string, data bson.D)
-}
-
-type DatabaseInstance struct {
+type Instance struct {
 	database   *mongo.Database
 	collection *mongo.Collection
 	ctx        context.Context
 	client     *mongo.Client
+	cancel context.CancelFunc
 }
 
 func GetDatabaseURI() string {
@@ -118,14 +112,14 @@ func GetDatabaseURI() string {
 	return dbUrI
 }
 
-func (databaseInstance *DatabaseInstance) Connect() {
+func (databaseInstance *Instance) Connect() {
 	mongodbURI := GetDatabaseURI()
 	client, err := mongo.NewClient(options.Client().ApplyURI(mongodbURI))
 	if err != nil {
 		log.Println(err)
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 
 	err = client.Connect(ctx)
 
@@ -138,15 +132,17 @@ func (databaseInstance *DatabaseInstance) Connect() {
 		log.Fatal(err)
 	}
 
+	log.Println("Connected to " + mongodbURI)
 	databaseInstance.client = client
 	databaseInstance.ctx = ctx
+	databaseInstance.cancel = cancel
 }
 
-func (databaseInstance *DatabaseInstance) CloseConnection() {
+func (databaseInstance *Instance) CloseConnection() {
 	defer client.Disconnect(databaseInstance.ctx)
 }
 
-func (databaseInstance *DatabaseInstance) SetDatabase() {
+func (databaseInstance *Instance) SetDatabase() {
 	databaseName, exists := os.LookupEnv("MONGO_DB_NAME")
 
 	if !exists {
@@ -159,7 +155,7 @@ func (databaseInstance *DatabaseInstance) SetDatabase() {
 	databaseInstance.database = databaseInstance.client.Database(databaseName)
 }
 
-func (databaseInstance *DatabaseInstance) ListDatabases() {
+func (databaseInstance *Instance) ListDatabases() {
 	databases, err := databaseInstance.client.ListDatabaseNames(databaseInstance.ctx, bson.M{})
 	if err != nil {
 		log.Fatal(err)
@@ -167,8 +163,8 @@ func (databaseInstance *DatabaseInstance) ListDatabases() {
 	log.Println("Databases available for use: '" + strings.Join(databases, ", ") + "'")
 }
 
-func StartDatebase() *DatabaseInstance {
-	databaseInstance := DatabaseInstance{}
+func StartDatebase() *Instance {
+	databaseInstance := Instance{}
 
 	log.Println("Starting database...")
 	databaseInstance.Connect()

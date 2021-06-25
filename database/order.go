@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -8,11 +9,11 @@ import (
 )
 
 type OrderInstanceAccessor struct {
-	instance   *DatabaseInstance
+	instance   *Instance
 	collection *mongo.Collection
 }
 
-func OrderInit(instance *DatabaseInstance) *OrderInstanceAccessor {
+func OrderInit(instance *Instance) *OrderInstanceAccessor {
 	orderCollection := OrderInstanceAccessor{instance: instance}
 	orderCollection.InitCollection()
 
@@ -20,11 +21,25 @@ func OrderInit(instance *DatabaseInstance) *OrderInstanceAccessor {
 }
 
 func (orderInstance *OrderInstanceAccessor) InitCollection() {
-	orderInstance.collection = orderInstance.instance.database.Collection("orders")
+	collection := "orders"
+	log.Println("accessing '"+ collection + "' collection")
+	orderInstance.collection = orderInstance.instance.database.Collection(collection)
+}
+
+func (orderInstance *OrderInstanceAccessor) ConnectToOrdersCollection() (context.CancelFunc, *mongo.Client){
+	instance := orderInstance.instance
+	instance.Connect()
+	orderInstance.InitCollection()
+	return instance.cancel, instance.client
 }
 
 func (orderInstance *OrderInstanceAccessor) Create(order Order) (*mongo.InsertOneResult, error) {
-	return orderInstance.collection.InsertOne(orderInstance.instance.ctx, order)
+	instance := orderInstance.instance
+	cancel, client := orderInstance.ConnectToOrdersCollection()
+	defer cancel()
+	defer client.Disconnect(instance.ctx)
+
+	return orderInstance.collection.InsertOne(instance.ctx, order)
 }
 
 func (orderInstance *OrderInstanceAccessor) FindOrder(hexString string) (Order, error) {
@@ -32,13 +47,23 @@ func (orderInstance *OrderInstanceAccessor) FindOrder(hexString string) (Order, 
 
 	var order Order
 
-	err := orderInstance.collection.FindOne(orderInstance.instance.ctx, bson.M{"_id": id}).Decode(&order)
+	instance := orderInstance.instance
+	cancel, client := orderInstance.ConnectToOrdersCollection()
+	defer cancel()
+	defer client.Disconnect(instance.ctx)
+
+	err := orderInstance.collection.FindOne(instance.ctx, bson.M{"_id": id}).Decode(&order)
 
 	return order, err
 }
 
 func (orderInstance *OrderInstanceAccessor) UpdateRecord(hexString string, data bson.D) (*mongo.UpdateResult, error) {
 	id := GetID(hexString)
+
+	instance := orderInstance.instance
+	cancel, client := orderInstance.ConnectToOrdersCollection()
+	defer cancel()
+	defer client.Disconnect(instance.ctx)
 
 	result, err := orderInstance.collection.UpdateOne(orderInstance.instance.ctx,
 		bson.M{"_id": id},
