@@ -17,18 +17,19 @@ type User struct {
 	Experiences []primitive.ObjectID `json:"experiences, omitempty" bson:"experiences, omitempty"`
 }
 type Chef struct {
-	ID          primitive.ObjectID   `json:"_id, omitempty" bson:"_id, omitempty"`
-	Name        string               `json:"name, omitempty" bson:"name, omitempty"`
+	ID          primitive.ObjectID   `bson:"_id, omitempty"`
+	Name        string               `json:"name" bson:"name" binding:"required"`
+	Email	string `json:"email" bson:"email" binding:"required"`
 	Experiences []primitive.ObjectID `json:"experiences, omitempty" bson:"experiences, omitempty"`
 }
 
 type Order struct {
-	ID           primitive.ObjectID `json:"_id, omitempty" bson:"_id, omitempty`
+	ID           primitive.ObjectID `json:"_id, omitempty" bson:"_id, omitempty"`
 	ExperienceId primitive.ObjectID `json:"experienceid, omitempty" bson:"experienceid, omitempty"`
 	ChefId       primitive.ObjectID `json:"chefid, omitempty" bson:"chefid, omitempty"`
-	PurchaseTime primitive.DateTime `json:"purchasetime, omitempty" bson:"purchasetime, omitempty"`
-	SubTotal     float32            `json:"subtotal, omitempty" bson:"subtotal, omitempty"`
+	PurchaseTime primitive.Timestamp `json:"purchasetime, omitempty" bson:"purchasetime, omitempty"`
+	SubTotal     float32            `json:"subtotal" bson:"subtotal" binding:"required"`
 	Tip          float32            `json:"tip, omitempty" bson:"tip, omitempty"`
-	Taxes        float32            `json:"taxes, omitempty" bson:"taxes, omitempty"`
-	// Total, calculate it on the fly
+	Taxes        float32            `json:"taxes" bson:"taxes" binding:"required"`
+		Total float32 `json:"total, omitempty" bson:"total, omitempty"`
 }

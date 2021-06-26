@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"encoding/json"
-
 	"net/http"
+	"net/mail"
 	"time"
 
 	"github.com/cjoshmartin/virtual-experience-api/database"
@@ -110,8 +110,10 @@ func CreatePersonEndpoint(response http.ResponseWriter, request *http.Request) {
 
 // }
 
-// "60d63e58e4e0161200df7db5"
-// "60d640fa38dcee4d59b232b2"
+func isValidEmail(email string) bool {
+	_, err := mail.ParseAddress(email)
+	return err == nil
+}
 
 func main() {
 	webserver.RunnerRunner()
@@ -131,11 +133,26 @@ func main() {
 				return
 			}
 
-			// if order.PurchaseTime != nil {
-			// set the current time
-			// }
+			order.PurchaseTime = primitive.Timestamp{T:uint32(time.Now().Unix())}
 
-			result, err := orderCollection.Create(order)
+			 taxes := order.Taxes
+
+			 if taxes > 1  || taxes < 0 {
+			 	c.JSON(http.StatusBadRequest, gin.H{"status": "taxes amount should be between 0 and 1"})
+			 	return
+			 }
+
+			 subTotal := order.SubTotal
+			 if subTotal < 0.01 {
+			 	c.JSON(http.StatusBadRequest, gin.H{"status": "Subtotal has to be greater then 0"})
+			 	return
+			 }
+
+			taxes = order.SubTotal * order.Taxes
+			total := order.SubTotal + taxes + order.Tip
+
+			order.Total = total
+			result, err := orderCollection.CreateOrder(order)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
 				return
@@ -163,13 +180,11 @@ func main() {
 				return
 			}
 
-			// if order.PurchaseTime != nil {
-			// set the current time
-			// }
-
 			c.JSON(http.StatusOK, order)
 		})
 	}
+
+	chefCollection := database.ChefInit(mongoDatabase)
 
 	chefs := r.Group("/chef")
 	{
@@ -181,13 +196,37 @@ func main() {
 				return
 			}
 
+			if !isValidEmail(chef.Email) {
+				c.JSON(http.StatusBadRequest, gin.H{"status": "Invalid email address"})
+				return
+			}
+
+			result, err := chefCollection.CreateChef(chef)
+
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
+
+			c.JSON(http.StatusOK, result)
+		})
+
+		chefs.GET("/:id", func(c *gin.Context) {
+			id := c.Param("id")
+
+			chef, err := chefCollection.FindChef(id)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
+
 			c.JSON(http.StatusOK, chef)
 		})
-		chefs.GET("/{id}", func(c *gin.Context) {
+		chefs.POST("/:id/add-experience", func(c *gin.Context) {
 
 			c.JSON(http.StatusOK, gin.H{"message": "pong"})
 		})
-		chefs.POST("/{id}/update", func(c *gin.Context) {
+		chefs.POST("/:id/update", func(c *gin.Context) {
 			var chef database.Chef
 
 			if err := c.ShouldBindJSON(&chef); err != nil {

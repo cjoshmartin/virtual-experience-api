@@ -102,7 +102,7 @@ func GetDatabaseURI() string {
 
 	if !exists {
 		databaseName = "0.0.0.0"
-		log.Println("No running server in a docker container")
+		log.Println("Not running server in a docker container")
 	}
 
 	dbUrI := "mongodb://" + databaseName

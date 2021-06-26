@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -15,12 +16,12 @@ type OrderInstanceAccessor struct {
 
 func OrderInit(instance *Instance) *OrderInstanceAccessor {
 	orderCollection := OrderInstanceAccessor{instance: instance}
-	orderCollection.InitCollection()
+	orderCollection.InitOrderCollection()
 
 	return &orderCollection
 }
 
-func (orderInstance *OrderInstanceAccessor) InitCollection() {
+func (orderInstance *OrderInstanceAccessor) InitOrderCollection() {
 	collection := "orders"
 	log.Println("accessing '"+ collection + "' collection")
 	orderInstance.collection = orderInstance.instance.database.Collection(collection)
@@ -29,15 +30,17 @@ func (orderInstance *OrderInstanceAccessor) InitCollection() {
 func (orderInstance *OrderInstanceAccessor) ConnectToOrdersCollection() (context.CancelFunc, *mongo.Client){
 	instance := orderInstance.instance
 	instance.Connect()
-	orderInstance.InitCollection()
+	orderInstance.InitOrderCollection()
 	return instance.cancel, instance.client
 }
 
-func (orderInstance *OrderInstanceAccessor) Create(order Order) (*mongo.InsertOneResult, error) {
+func (orderInstance *OrderInstanceAccessor) CreateOrder(order Order) (*mongo.InsertOneResult, error) {
 	instance := orderInstance.instance
 	cancel, client := orderInstance.ConnectToOrdersCollection()
 	defer cancel()
 	defer client.Disconnect(instance.ctx)
+
+	order.ID = primitive.NewObjectID()
 
 	return orderInstance.collection.InsertOne(instance.ctx, order)
 }
@@ -57,7 +60,7 @@ func (orderInstance *OrderInstanceAccessor) FindOrder(hexString string) (Order, 
 	return order, err
 }
 
-func (orderInstance *OrderInstanceAccessor) UpdateRecord(hexString string, data bson.D) (*mongo.UpdateResult, error) {
+func (orderInstance *OrderInstanceAccessor) UpdateOrder(hexString string, data bson.D) (*mongo.UpdateResult, error) {
 	id := GetID(hexString)
 
 	instance := orderInstance.instance
