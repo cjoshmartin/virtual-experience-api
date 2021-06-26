@@ -108,6 +108,7 @@ func main() {
 		})
 	}
 
+
 	chefCollection := database.ChefInit(mongoDatabase)
 
 	chefs := r.Group("/chef")
@@ -182,6 +183,8 @@ func main() {
 		})
 	}
 
+	userCollection := database.UserInit(mongoDatabase)
+
 	users := r.Group("/user")
 	{
 		users.POST("/create", func(c *gin.Context) {
@@ -192,11 +195,33 @@ func main() {
 				return
 			}
 
-			c.JSON(http.StatusOK, user)
-		})
-		users.GET("/{id}", func(c *gin.Context) {
+			if !isValidEmail(user.Email) {
+				c.JSON(http.StatusBadRequest, gin.H{"status": "Invalid email address"})
+				return
+			}
 
-			c.JSON(http.StatusOK, gin.H{"message": "pong"})
+			if user.Experiences == nil {
+				user.Experiences = []primitive.ObjectID{}
+			}
+
+			result, err := userCollection.CreateUser(user)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
+
+			c.JSON(http.StatusOK, result)
+		})
+		users.GET("/:id", func(c *gin.Context) {
+			id := c.Param("id")
+
+			user, err := userCollection.FindUser(id)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
+
+			c.JSON(http.StatusOK, user)
 		})
 
 		users.POST("/{id}/update", func(c *gin.Context) {

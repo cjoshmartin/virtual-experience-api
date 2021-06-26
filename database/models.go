@@ -12,8 +12,8 @@ type Experience struct {
 }
 type User struct {
 	ID          primitive.ObjectID   `json:"_id, omitempty" bson:"_id, omitempty"`
-	Name        string               `json:"name, omitempty" bson:"name, omitempty"`
-	Email       string               `json:"email, omitempty" bson:"email, omitempty"`
+	Name        string               `json:"name, omitempty" bson:"name, omitempty" binding:"required"`
+	Email       string               `json:"email, omitempty" bson:"email, omitempty" binding:"required"`
 	Experiences []primitive.ObjectID `json:"experiences, omitempty" bson:"experiences, omitempty"`
 }
 type Chef struct {
