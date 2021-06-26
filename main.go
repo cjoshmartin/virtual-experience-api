@@ -201,12 +201,17 @@ func main() {
 				return
 			}
 
+			if chef.Experiences == nil {
+				chef.Experiences = []primitive.ObjectID{}
+			}
+
 			result, err := chefCollection.CreateChef(chef)
 
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
 				return
 			}
+
 
 			c.JSON(http.StatusOK, result)
 		})
@@ -232,6 +237,21 @@ func main() {
 			if err := c.ShouldBindJSON(&chef); err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
 				return
+			}
+
+			c.JSON(http.StatusOK, chef)
+		})
+
+		chefs.GET("/all", func(c *gin.Context) {
+
+			chef, err := chefCollection.FindAllChefs()
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
+
+			if chef == nil {
+				chef = []database.Chef{}
 			}
 
 			c.JSON(http.StatusOK, chef)

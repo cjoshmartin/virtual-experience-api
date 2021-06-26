@@ -52,7 +52,33 @@ func (chefInstance *ChefInstanceAccessor) FindChef(id string) (Chef, error) {
 	defer cancel()
 	defer client.Disconnect(instance.ctx)
 
+	// not sure why this is not finding records
 	err := chefInstance.collection.FindOne(instance.ctx, bson.M{"_id": id}).Decode(&chef)
 
 	return chef, err
+}
+
+func (chefInstance *ChefInstanceAccessor) FindAllChefs() ([]Chef, error){
+
+	var chefs []Chef
+
+	instance := chefInstance.instance
+	cancel, client := chefInstance.ConnectToChefsCollection()
+	defer cancel()
+	defer client.Disconnect(instance.ctx)
+
+	cursor, err := chefInstance.collection.Find(instance.ctx, bson.M{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cursor.Close(instance.ctx)
+	for cursor.Next(instance.ctx){
+		var chef Chef
+		if err = cursor.Decode(&chef); err != nil {
+			return chefs, err
+		}
+			chefs = append(chefs, chef)
+	}
+
+	return chefs, err
 }
