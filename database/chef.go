@@ -43,8 +43,8 @@ func (chefInstance *ChefInstanceAccessor) CreateChef(chef Chef) (*mongo.InsertOn
 	return chefInstance.collection.InsertOne(instance.ctx, chef)
 }
 
-func (chefInstance *ChefInstanceAccessor) FindChef(id string) (Chef, error) {
-
+func (chefInstance *ChefInstanceAccessor) FindChef(hexString string) (Chef, error) {
+	id := GetID(hexString)
 	var chef Chef
 
 	instance := chefInstance.instance

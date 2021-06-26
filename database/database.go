@@ -91,7 +91,6 @@ var client *mongo.Client
 
 type Instance struct {
 	database   *mongo.Database
-	collection *mongo.Collection
 	ctx        context.Context
 	client     *mongo.Client
 	cancel context.CancelFunc
