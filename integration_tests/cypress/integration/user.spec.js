@@ -10,6 +10,7 @@ context("Chef Endpoints", ()=>{
                 failOnStatusCode: false,
                 body: JSON.stringify(postBody)
             }).then((response) =>{
+                cy.log(`response body: ${JSON.stringify(response.body)}`)
                 expect(response.status).to.eq(400)
             })
         })
@@ -23,6 +24,7 @@ context("Chef Endpoints", ()=>{
                 failOnStatusCode: false,
                 body: JSON.stringify(postBody)
             }).then((response) =>{
+                cy.log(`response body: ${JSON.stringify(response.body)}`)
                 expect(response.status).to.eq(400)
             })
         })
@@ -38,6 +40,7 @@ context("Chef Endpoints", ()=>{
                 failOnStatusCode: false,
                 body: JSON.stringify(postBody)
             }).then((response) =>{
+                cy.log(`response body: ${JSON.stringify(response.body)}`)
                 expect(response.status).to.eq(400)
             })
         })
@@ -53,6 +56,7 @@ context("Chef Endpoints", ()=>{
                 failOnStatusCode: false,
                 body: JSON.stringify(postBody)
             }).then((response) =>{
+                cy.log(`response body: ${JSON.stringify(response.body)}`)
                 expect(response.status).to.eq(200)
             })
         })
@@ -67,6 +71,7 @@ context("Chef Endpoints", ()=>{
                 url: `/user/${ID}`,
                 failOnStatusCode: false,
             }).then((response) =>{
+                cy.log(`response body: ${JSON.stringify(response.body)}`)
                 expect(response.status).to.eq(400)
                 expect(response.body.status).to.eq("mongo: no documents in result")
             })
@@ -90,6 +95,7 @@ context("Chef Endpoints", ()=>{
                      url: `/user/${id}`,
                      failOnStatusCode: false,
                  }).then((response) => {
+                     cy.log(`response body: ${JSON.stringify(response.body)}`)
                      expect(response.status).to.eq(200)
                      expect(response.body.name).to.eq(postBody.name)
                  })

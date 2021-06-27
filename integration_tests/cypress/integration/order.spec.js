@@ -15,6 +15,7 @@ context("Order Endpoints", () => {
             body: JSON.stringify(postBody)
         } )
             .then((response) => {
+                cy.log(`response body: ${JSON.stringify(response.body)}`)
                 expect(response.status).to.eq(400)
             })
     })
@@ -57,6 +58,7 @@ context("Order Endpoints", () => {
                     failOnStatusCode: false,
                     body: JSON.stringify(postBody)
                 }).then((response) => {
+                    cy.log(`response body: ${JSON.stringify(response.body)}`)
                     expect(response.status).to.eq(200)
                 })
             })

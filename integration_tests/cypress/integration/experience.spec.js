@@ -14,6 +14,7 @@ context("Experiences", () => {
             failOnStatusCode: false,
             body: JSON.stringify(postBody)
          }).then((response) =>{
+            cy.log(`response body: ${JSON.stringify(response.body)}`)
             expect(response.status).to.eq(400)
          })
       })
@@ -44,6 +45,7 @@ context("Experiences", () => {
                failOnStatusCode: false,
                body: JSON.stringify(postBody)
             }).then((response) =>{
+               cy.log(`response body: ${JSON.stringify(response.body)}`)
                expect(response.status).to.eq(200)
             })
          })
@@ -74,6 +76,7 @@ context("Experiences", () => {
                failOnStatusCode: false,
                body: JSON.stringify(postBody)
             }).then((response) =>{
+               cy.log(`response body: ${JSON.stringify(response.body)}`)
                expect(response.status).to.eq(400)
             })
          })
@@ -88,6 +91,7 @@ context("Experiences", () => {
              url: `/user/${id}`,
              failOnStatusCode: false,
           }).then((response) =>{
+             cy.log(`response body: ${JSON.stringify(response.body)}`)
              expect(response.status).to.eq(400)
           })
        })
@@ -121,6 +125,7 @@ context("Experiences", () => {
                    method: "GET",
                    url: `/experience/${response.body["InsertedID"]}`
                 }).then(rep => {
+                   cy.log(`response body: ${JSON.stringify(response.body)}`)
                    expect(rep.status).to.eq(200)
                 })
              })

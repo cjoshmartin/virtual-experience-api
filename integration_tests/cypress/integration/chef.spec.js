@@ -11,6 +11,7 @@ context("Chef Endpoints", ()=>{
                 failOnStatusCode: false,
                 body: JSON.stringify(postBody)
             }).then((response) =>{
+                cy.log(`response body: ${JSON.stringify(response.body)}`)
                 expect(response.status).to.eq(400)
             })
         })
@@ -24,6 +25,7 @@ context("Chef Endpoints", ()=>{
                 failOnStatusCode: false,
                 body: JSON.stringify(postBody)
             }).then((response) =>{
+                cy.log(`response body: ${JSON.stringify(response.body)}`)
                 expect(response.status).to.eq(400)
             })
         })
@@ -39,6 +41,7 @@ context("Chef Endpoints", ()=>{
                 failOnStatusCode: false,
                 body: JSON.stringify(postBody)
             }).then((response) =>{
+                cy.log(`response body: ${JSON.stringify(response.body)}`)
                 expect(response.status).to.eq(400)
             })
         })
@@ -54,6 +57,7 @@ context("Chef Endpoints", ()=>{
                 failOnStatusCode: false,
                 body: JSON.stringify(postBody)
             }).then((response) =>{
+                cy.log(`response body: ${JSON.stringify(response.body)}`)
                 expect(response.status).to.eq(200)
             })
         })
@@ -68,6 +72,7 @@ context("Chef Endpoints", ()=>{
                 url: `/chef/${ID}`,
                 failOnStatusCode: false,
             }).then((response) =>{
+                cy.log(`response body: ${JSON.stringify(response.body)}`)
                 expect(response.status).to.eq(400)
                 expect(response.body.status).to.eq("mongo: no documents in result")
             })
@@ -90,6 +95,7 @@ context("Chef Endpoints", ()=>{
                    url: `/chef/${id}`,
                    failOnStatusCode: false,
                }).then((response) => {
+                   cy.log(`response body: ${JSON.stringify(response.body)}`)
                    expect(response.status).to.eq(200)
                    expect(response.body.name).to.eq(postBody.name)
                })
@@ -123,6 +129,7 @@ context("Chef Endpoints", ()=>{
                         url: `/chef/all`,
                     }).then((response) => {
                         const responseBody = response.body
+                        cy.log(`response body: ${JSON.stringify(response.body)}`)
                         expect(responseBody.some(chef => chef.name === postBody1.name)).to.eq(true)
                         expect(responseBody.some(chef => chef.name === postBody2.name)).to.eq(true)
                     })
