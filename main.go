@@ -236,21 +236,45 @@ func main() {
 		})
 	}
 
+	experienceCollection := database.ExperienceInit(mongoDatabase)
 	experiences := r.Group("/experience")
 	{
 		experiences.POST("/create", func(c *gin.Context) {
 			var experience database.Experience
 
 			if err := c.ShouldBindJSON(&experience); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+					return
+			}
+
+
+			chefId := experience.ChefID
+			_, err := chefCollection.FindChef(chefId.Hex())
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": "Problem found with the chefid you have provided. Please check it and send again"})
+				return
+			}
+
+			experience.Attendees = []primitive.ObjectID{}
+			result, err := experienceCollection.CreateExperience(experience)
+
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+				return
+			}
+
+			c.JSON(http.StatusOK, result)
+		})
+		experiences.GET("/:id", func(c *gin.Context) {
+			id := c.Param("id")
+
+			experience, err := experienceCollection.FindExperience(id)
+			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
 				return
 			}
 
 			c.JSON(http.StatusOK, experience)
-		})
-		experiences.GET("/{id}", func(c *gin.Context) {
-
-			c.JSON(http.StatusOK, gin.H{"message": "pong"})
 		})
 
 		experiences.POST("/{id}/update", func(c *gin.Context) { // update record

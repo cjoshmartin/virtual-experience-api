@@ -4,11 +4,12 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type Experience struct {
 	ID               primitive.ObjectID   `json:"_id, omitempty" bson:"_id, omitempty"`
-	Name             string               `json:"name, omitempty" bson:"name, omitempty"`
-	Description      string               `json:"description, omitempty" bson:"description, omitempty"[`
-	Attendees        []primitive.ObjectID `json:"attendees, omitempty" bson:"attendees, omitempty"`
+	ChefID			 primitive.ObjectID    `json:"chefid" bson:"chefid" binding:"required"`
+	Name             string               `json:"name" bson:"name" binding:"required"`
+	Description      string               `json:"description, omitempty" bson:"description, omitempty"`
+	Attendees        []primitive.ObjectID `json:"attendees" bson:"attendees"`
 	DateOfExperience primitive.DateTime   `json:"dateofexperience, omitempty" bson:"dateofexperience, omitempty"`
-	Price            float32              `json:"price, omitempty bson:"price, omitempty"`
+	Price            float32              `json:"price" bson:"price" binding:"required"`
 }
 type User struct {
 	ID          primitive.ObjectID   `json:"_id, omitempty" bson:"_id, omitempty"`
