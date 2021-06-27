@@ -17,3 +17,5 @@
 api
 mongodata/
 .vscode/
+**/node_modules/
+/**/cypress/videos

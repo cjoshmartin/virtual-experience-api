@@ -10,14 +10,12 @@ func isValidEmail(email string) bool {
 	return err == nil
 }
 
-func SetRoutes() *gin.Engine{
+func SetRoutes( router *gin.Engine) {
 	mongoDatabase := database.StartDatebase()
 	orderCollection := database.OrderInit(mongoDatabase)
 	chefCollection := database.ChefInit(mongoDatabase)
 	userCollection := database.UserInit(mongoDatabase)
 	experienceCollection := database.ExperienceInit(mongoDatabase)
-
-	router := gin.Default()
 
 	orders := router.Group("/order")
 	{
@@ -57,6 +55,10 @@ func SetRoutes() *gin.Engine{
 			idRoutes.POST("/update", UpdateExperience(experienceCollection))
 		}
 	}
+}
 
-	return router
+func Start()   {
+	router := gin.Default()
+	SetRoutes(router)
+	router.Run()
 }
