@@ -17,34 +17,46 @@ func SetRoutes() *gin.Engine{
 	userCollection := database.UserInit(mongoDatabase)
 	experienceCollection := database.ExperienceInit(mongoDatabase)
 
-	r := gin.Default()
+	router := gin.Default()
 
-	orders := r.Group("/order")
+	orders := router.Group("/order")
 	{
-		orders.POST("/create",CreateOrder(orderCollection, experienceCollection, chefCollection))
-		orders.GET("/:id",  GetOrderByID(orderCollection))
-		orders.POST("/:id/update", UpdateOrder(orderCollection))
+		orders.POST("/create", CreateOrder(orderCollection, experienceCollection, chefCollection))
+		idRoutes := orders.Group("/:id")
+		{
+			idRoutes.GET("", GetOrderByID(orderCollection))
+			idRoutes.POST("/update", UpdateOrder(orderCollection))
+		}
 	}
-	chefs := r.Group("/chef")
+	chefs := router.Group("/chef")
 	{
 		chefs.POST("/create", CreateChef(chefCollection))
-		chefs.GET("/:id", GetChefByID(chefCollection))
-		chefs.POST("/:id/add-experience",  AddExperienceToAChef(chefCollection))
-		chefs.POST("/:id/update", UpdateChef(chefCollection))
+		idRoutes := chefs.Group("/:id")
+		{
+			idRoutes.GET("", GetChefByID(chefCollection))
+			idRoutes.POST("/add-experience",  AddExperienceToAChef(chefCollection))
+			idRoutes.POST("/update", UpdateChef(chefCollection))
+		}
 		chefs.GET("/all", GetAllChefs(chefCollection))
 	}
-	users := r.Group("/user")
+	users := router.Group("/user")
 	{
 		users.POST("/create", CreateUser(userCollection))
-		users.GET("/:id", GetUserByID(userCollection))
-		users.POST("/:id/update", UpdateUser(userCollection))
+		idRoutes := users.Group("/:id")
+		{
+			idRoutes.GET("", GetUserByID(userCollection))
+			idRoutes.POST("/update", UpdateUser(userCollection))
+		}
 	}
-	experiences := r.Group("/experience")
+	experiences := router.Group("/experience")
 	{
 		experiences.POST("/create", CreateExperience(chefCollection, experienceCollection))
-		experiences.GET("/:id", GetExperienceByID(experienceCollection))
-		experiences.POST("/:id/update", UpdateExperience(experienceCollection))
+		idRoutes := experiences.Group("/:id")
+		{
+			idRoutes.GET("", GetExperienceByID(experienceCollection))
+			idRoutes.POST("/update", UpdateExperience(experienceCollection))
+		}
 	}
 
-	return r
+	return router
 }
