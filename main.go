@@ -44,6 +44,9 @@ func main() {
 	webserver.RunnerRunnerRunner()
 	mongoDatabase := database.StartDatebase()
 	orderCollection := database.OrderInit(mongoDatabase)
+	chefCollection := database.ChefInit(mongoDatabase)
+	userCollection := database.UserInit(mongoDatabase)
+	experienceCollection := database.ExperienceInit(mongoDatabase)
 
 	r := gin.Default()
 
@@ -76,6 +79,21 @@ func main() {
 			total := order.SubTotal + taxes + order.Tip
 
 			order.Total = total
+
+			experienceId := order.ExperienceId
+			_, err := experienceCollection.FindExperience(experienceId.Hex())
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": "Invalid experienceId"})
+				return
+			}
+
+			chefId := order.ChefId
+			_, err = chefCollection.FindChef(chefId.Hex())
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"status": "Problem found with the chefid you have provided. Please check it and send again"})
+				return
+			}
+
 			result, err := orderCollection.CreateOrder(order)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
@@ -108,8 +126,6 @@ func main() {
 		})
 	}
 
-
-	chefCollection := database.ChefInit(mongoDatabase)
 
 	chefs := r.Group("/chef")
 	{
@@ -183,8 +199,6 @@ func main() {
 		})
 	}
 
-	userCollection := database.UserInit(mongoDatabase)
-
 	users := r.Group("/user")
 	{
 		users.POST("/create", func(c *gin.Context) {
@@ -236,7 +250,6 @@ func main() {
 		})
 	}
 
-	experienceCollection := database.ExperienceInit(mongoDatabase)
 	experiences := r.Group("/experience")
 	{
 		experiences.POST("/create", func(c *gin.Context) {

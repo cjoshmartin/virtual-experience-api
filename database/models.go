@@ -26,9 +26,9 @@ type Chef struct {
 
 type Order struct {
 	ID           primitive.ObjectID `json:"_id, omitempty" bson:"_id, omitempty"`
-	ExperienceId primitive.ObjectID `json:"experienceid, omitempty" bson:"experienceid, omitempty"`
-	ChefId       primitive.ObjectID `json:"chefid, omitempty" bson:"chefid, omitempty"`
-	PurchaseTime primitive.Timestamp `json:"purchasetime, omitempty" bson:"purchasetime, omitempty"`
+	ExperienceId primitive.ObjectID `json:"experienceid, omitempty" bson:"experienceid, omitempty" binding:"required"`
+	ChefId       primitive.ObjectID `json:"chefid, omitempty" bson:"chefid, omitempty" binding:"required"`
+	PurchaseTime primitive.Timestamp `json:"purchasetime" bson:"purchasetime"`
 	SubTotal     float32            `json:"subtotal" bson:"subtotal" binding:"required"`
 	Tip          float32            `json:"tip, omitempty" bson:"tip, omitempty"`
 	Taxes        float32            `json:"taxes" bson:"taxes" binding:"required"`
