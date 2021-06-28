@@ -45,6 +45,7 @@ func (experienceInstance *ExperienceInstanceAccessor) CreateExperience(experienc
 	return experienceInstance.collection.InsertOne(instance.ctx, experience)
 }
 
+
 func (experienceInstance *ExperienceInstanceAccessor) FindExperience(hexString string)(Experience, error){
 		id := GetID(hexString)
 
@@ -58,4 +59,18 @@ func (experienceInstance *ExperienceInstanceAccessor) FindExperience(hexString s
 		err := experienceInstance.collection.FindOne(instance.ctx, bson.M{"_id": id}).Decode(&experience)
 
 		return experience, err
+}
+
+func (experienceInstance *ExperienceInstanceAccessor) AddAttendee(userHexString string, experienceHexString string) (*mongo.UpdateResult, error)  {
+	userID := GetID(userHexString)
+	experienceID := GetID(experienceHexString)
+
+	instance := experienceInstance.instance
+	cancel, client := experienceInstance.ConnectToExperienceCollection()
+	defer cancel()
+	defer client.Disconnect(instance.ctx)
+
+	result, err := experienceInstance.collection.UpdateOne(instance.ctx, bson.M{"_id": experienceID}, bson.M{ "$push": bson.M{"attendees": userID}})
+	return result, err
+
 }

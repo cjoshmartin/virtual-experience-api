@@ -49,6 +49,7 @@ func SetRoutes( router *gin.Engine) {
 	experiences := router.Group("/experience")
 	{
 		experiences.POST("/create", CreateExperience(chefCollection, experienceCollection))
+		experiences.POST("/add-attendee", AddAttendeeToExperience(userCollection, experienceCollection))
 		idRoutes := experiences.Group("/:id")
 		{
 			idRoutes.GET("", GetExperienceByID(experienceCollection))

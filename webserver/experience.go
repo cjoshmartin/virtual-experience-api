@@ -96,3 +96,33 @@ func UpdateExperience(experienceCollection *database.ExperienceInstanceAccessor)
 		c.JSON(http.StatusOK, experience)
 	}
 }
+
+type AddAttendeeBody struct {
+	UserID primitive.ObjectID `json:"user_id"`
+	ExperienceID primitive.ObjectID `json:"experience_id"`
+}
+
+func AddAttendeeToExperience(userCollection *database.UserInstanceAccessor, experienceCollection *database.ExperienceInstanceAccessor) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var addAttendeeBody AddAttendeeBody
+
+		if err := c.ShouldBindJSON(&addAttendeeBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+			return
+		}
+
+		_, err := userCollection.FindUser(addAttendeeBody.UserID.Hex())
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": "invalid User ID"})
+			return
+		}
+		result, err := experienceCollection.AddAttendee(addAttendeeBody.UserID.Hex(), addAttendeeBody.ExperienceID.Hex())
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, result)
+	}
+
+}

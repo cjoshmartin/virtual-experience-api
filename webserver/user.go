@@ -3,7 +3,6 @@ package webserver
 import (
 	"github.com/cjoshmartin/virtual-experience-api/database"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 )
 
@@ -19,10 +18,6 @@ func CreateUser(userCollection *database.UserInstanceAccessor) gin.HandlerFunc{
 		if !isValidEmail(user.Email) {
 			c.JSON(http.StatusBadRequest, gin.H{"status": "Invalid email address"})
 			return
-		}
-
-		if user.Experiences == nil {
-			user.Experiences = []primitive.ObjectID{}
 		}
 
 		result, err := userCollection.CreateUser(user)
