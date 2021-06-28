@@ -10,13 +10,14 @@ services:
             # MONGO_INITDB_DATABASE: experienceapi
         volumes: 
             - ./mongodata:/data/db
-    web:
-        build: .
-        ports: 
-            - 8080:8080
-        restart: always
-        environment:
-            DATABASE_CONTAINER_NAME: "db"
-            MONGO_DB_NAME: "experiences_api"
-        depends_on: 
-            - db
+# Cannot find template folder for now. Not sure how to fix this yet
+#    web:
+#        build: .
+#        ports:
+#            - 8080:8080
+#        restart: always
+#        environment:
+#            DATABASE_CONTAINER_NAME: "db"
+#            MONGO_DB_NAME: "experiences_api"
+#        depends_on:
+#            - db

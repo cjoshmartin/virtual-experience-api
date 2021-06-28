@@ -145,11 +145,9 @@ func (databaseInstance *Instance) SetDatabase() {
 	databaseName, exists := os.LookupEnv("MONGO_DB_NAME")
 
 	if !exists {
-		log.Fatalln("No database name found in environment.Please set `MONGO_DB_NAME`")
-	} else {
-
-		log.Println("Found  wanted database name in enviroment '" + databaseName + "'")
+		databaseName ="experiences_api"
 	}
+	log.Println("Found  wanted database name in enviroment '" + databaseName + "'")
 
 	databaseInstance.database = databaseInstance.client.Database(databaseName)
 }
