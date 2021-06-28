@@ -174,10 +174,7 @@ func StartDatebase() *Instance {
 	return &databaseInstance
 }
 
-func GetID(hexString string) primitive.ObjectID {
+func GetID(hexString string) (primitive.ObjectID, error) {
 	_id, err := primitive.ObjectIDFromHex(hexString)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	return _id
+	return _id, err
 }

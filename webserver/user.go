@@ -47,3 +47,21 @@ func GetUserByID(userCollection *database.UserInstanceAccessor) gin.HandlerFunc{
 		c.JSON(http.StatusOK, user)
 	}
 }
+
+
+func GetAllUsers(userCollection *database.UserInstanceAccessor) gin.HandlerFunc {
+
+	return func(c *gin.Context) {
+		users, err := userCollection.FindAllUsers()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+			return
+		}
+
+		if users == nil {
+			users = []database.User{}
+		}
+
+		c.JSON(http.StatusOK, users)
+	}
+}

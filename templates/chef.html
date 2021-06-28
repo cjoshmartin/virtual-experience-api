@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chef Actions</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+
+<h1>Chefs</h1>
+<ul>
+    <li><a href="/">home</a></li>
+    <li><a href="/user">user</a></li>
+    <li><a href="/experience">experience</a></li>
+    <li><a href="/chef">chef</a></li>
+    <li><a href="/order">order</a></li>
+
+</ul>
+
+<hr />
+
+<div style="border: 5px solid black;" id="app">
+    <div>
+        <h3><a href="/chef/all"> Get All Chefs</a></h3>
+        <small><a href="https://chrome.google.com/webstore/detail/jsonview/chklaanhfefbnpoihckbnefhakgolnmc?hl=en"> JSON viewer plugin for chrome</a></small>
+    </div>
+
+    <div>
+        <h3>Create a Chef</h3>
+        <form @submit.prevent="createChef">
+            <div>
+                <label>Chef Name</label>
+                <input type="text" required v-model="createChefData.name">
+            </div>
+            <div>
+                <label>Chef Email</label>
+                <input type="email" required v-model="createChefData.email">
+            </div>
+            <button>Submit</button>
+        </form>
+    </div>
+    <div>
+        <h3>Get Chef By ID </h3>
+        <form @submit.prevent="lookupChefByID">
+            <div>
+                <label>Chef ID</label>
+                <input type="text" required v-model="chefLookupData.id">
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <div>
+        <h3>Chef's Virtual Experiences </h3>
+        <form @submit.prevent="lookupChefExperiences">
+            <div>
+                <label>Chef ID</label>
+                <input type="text" required v-model="chefExperiencesLookupData.id">
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    const app = new Vue({
+        el: '#app',
+        delimiters: ['[[', ']]'],
+        data: {
+            createChefData: {
+                name: "",
+                email: ""
+            },
+            chefLookupData: {
+                id: "",
+            },
+            chefExperiencesLookupData: {
+                id: "",
+            }
+        },
+        methods: {
+            createChef(){
+                console.log(JSON.stringify(this.createChefData))
+                axios.post("/chef/create", {
+                    ...this.createChefData,
+                }).then(({data}) =>{
+                    this.createChefData.name =""
+                    this.createChefData.email =""
+                    alert( "Success!!!\n" +JSON.stringify(data))
+                })
+                    .catch((error) => {
+                        alert( "Error :(\n" +JSON.stringify(error.data))
+                    })
+            },
+            lookupChefByID(){
+                axios.get(`/chef/${this.chefLookupData.id}`)
+                    .then( (data)=> {
+                    this.chefLookupData.id = ""
+                    alert( "Success!!!\n" +JSON.stringify(data?.data, ' ', 4))
+                })
+                    .catch((e) => {
+                        this.chefExperiencesLookupData.id = ""
+                        alert( "Error :(\n" +JSON.stringify(e?.response?.data?.status ?? e))
+                    })
+            },
+            lookupChefExperiences(){
+                axios.get(`/chef/${this.chefExperiencesLookupData.id}/experiences`)
+                    .then( (data)=> {
+                        this.chefExperiencesLookupData.id = ""
+                        alert( "Success!!!\n" +JSON.stringify(data?.data, ' ', 4))
+                    })
+                    .catch((e) => {
+                        this.chefExperiencesLookupData.id = ""
+                        alert( "Error :(\n" +JSON.stringify(e?.response?.data?.status ?? e))
+                    })
+            }
+        }
+    })
+</script>
+
+
+
+</body>
+</html>

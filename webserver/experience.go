@@ -107,3 +107,15 @@ func AddAttendeeToExperience(userCollection *database.UserInstanceAccessor, expe
 	}
 
 }
+
+func GetAllExperiences(experienceCollection *database.ExperienceInstanceAccessor) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		experiences, err := experienceCollection.FindAllExperiences()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, experiences)
+	}
+}

@@ -45,7 +45,10 @@ func (userInstance *UserInstanceAccessor) CreateUser(user User) (*mongo.InsertOn
 }
 
 func (userInstance *UserInstanceAccessor) FindUser(hexString string) (User, error){
-	id := GetID(hexString)
+	id, err := GetID(hexString)
+	if err != nil {
+		return User{}, err
+	}
 
 	var user User
 
@@ -54,7 +57,33 @@ func (userInstance *UserInstanceAccessor) FindUser(hexString string) (User, erro
 	defer cancel()
 	defer client.Disconnect(instance.ctx)
 
-	err := userInstance.collection.FindOne(instance.ctx, bson.M{"_id": id}).Decode(&user)
+	err = userInstance.collection.FindOne(instance.ctx, bson.M{"_id": id}).Decode(&user)
 
 	return user, err
+}
+
+func (userInstance *UserInstanceAccessor) FindAllUsers() ([]User, error) {
+
+	var users []User
+
+	instance := userInstance.instance
+	cancel, client := userInstance.ConnectToUserCollection()
+	defer cancel()
+	defer client.Disconnect(instance.ctx)
+
+	cursor, err := userInstance.collection.Find(instance.ctx, bson.M{})
+	if err != nil {
+		return users, err
+	}
+
+	defer cursor.Close(instance.ctx)
+	for cursor.Next(instance.ctx){
+		var user User
+		if err = cursor.Decode(&user); err != nil {
+			return users, err
+		}
+		users = append(users, user)
+	}
+
+	return users, err
 }

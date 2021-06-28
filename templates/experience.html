@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Experience Actions</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js" integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+
+<h1>Experience</h1>
+<ul>
+    <li><a href="/">home</a></li>
+    <li><a href="/user">user</a></li>
+    <li><a href="/experience">experience</a></li>
+    <li><a href="/chef">chef</a></li>
+    <li><a href="/order">order</a></li>
+
+</ul>
+
+<hr />
+<div id="app">
+    <div>
+        <h2><a href="/experience/all"> Get All Experiences</a></h2>
+        <small><a href="https://chrome.google.com/webstore/detail/jsonview/chklaanhfefbnpoihckbnefhakgolnmc?hl=en"> JSON viewer plugin for chrome</a></small>
+    </div>
+    <div>
+        <h2> Create An Experience</h2>
+        <form @submit.prevent="createExperience">
+            <div>
+                <label>Name of Experience</label>
+                <input type="text" required v-model="createExperienceData.name">
+            </div>
+            <div>
+                <label>Description</label>
+                <input type="text" v-model="createExperienceData.description" >
+            </div>
+            <div>
+                <label>Chef ID</label>
+                <select type="text" required v-model="createExperienceData.chefid">
+                    <option v-for="chefid in chefIds"> [[chefid]]</option>
+                </select>
+            </div>
+            <div>
+                <label>Price</label>
+                <input type="number" required v-model="createExperienceData.price" step="0.01">
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <div>
+        <h2> Add An Attendee to an Experience</h2>
+        <form @submit.prevent="addAttendeeToExperience">
+            <div>
+                <label>Experience ID</label>
+                <input type="text" required v-model="attendeeExperienceData.experience_id">
+            </div>
+            <div>
+                <label>User ID</label>
+                <select type="text" required v-model="attendeeExperienceData.user_id">
+                    <option v-for="userid in userIds"> [[userid]]</option>
+                </select>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <div>
+        <h2> Get Experience by ID</h2>
+        <form @submit.prevent="lookupExperienceByID">
+            <div>
+                <label>Experience ID</label>
+                <input type="text" required v-model="experienceLookupData.id">
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+</div>
+<script>
+
+    const app = new Vue({
+        el: '#app',
+        delimiters: ['[[', ']]'],
+        data: {
+            chefIds:[],
+            userIds: [],
+            createExperienceData: {
+                name: "",
+                description: "",
+                chefid: "",
+                price: 1.50
+            },
+            attendeeExperienceData: {
+                experience_id:"",
+                user_id: "",
+            },
+            experienceLookupData: {
+                id: "",
+            }
+        },
+        async beforeCreate(){
+            const chefIds = (await axios.get("/chef/all")).data
+            this.chefIds = chefIds.map(({ID}) => ID)
+
+            const userIds = (await axios.get('/user/all')).data
+            this.userIds = userIds.map(({_id}) => _id)
+        },
+        methods: {
+            createExperience(){
+                const nextDayAtNineAM = moment().utcOffset(0).add(1, "days").set({hour: 9})
+                console.log(JSON.stringify(this.createExperienceData))
+                axios.post("/experience/create", {
+                    ...this.createExperienceData,
+                    dateandtime: nextDayAtNineAM, // should use a datepicker instead but this is fine for now
+                })
+                    .then(({data}) =>{
+                        alert( "Success!!!\n" +JSON.stringify(data))
+                    })
+                    .catch((e) => {
+                        alert( "Error :(\n" +JSON.stringify(e?.response?.data?.status ?? e))
+                    })
+                    .finally(() => {
+                        this.createExperienceData.name= ""
+                        this.createExperienceData.description= ""
+                        this.createExperienceData.chefid= ""
+                        this.createExperienceData.price= 1.50
+                    })
+            },
+            addAttendeeToExperience(){
+                axios.post("/experience/add-attendee", {
+                    ...this.attendeeExperienceData
+                })
+                    .then(({data}) =>{
+                        alert( "Success!!!\n" +JSON.stringify(data))
+                    })
+                    .catch((e) => {
+                        alert( "Error :(\n" +JSON.stringify(e?.response?.data?.status ?? e))
+                    })
+                    .finally(() => {
+                        this.attendeeExperienceData.experience_id = ""
+                        this.attendeeExperienceData.user_id = ""
+                    })
+            },
+            lookupExperienceByID(){
+                axios.get(`/experience/${this.experienceLookupData.id}`)
+                    .then( (data)=> {
+                        this.experienceLookupData.id = ""
+                        alert( "Success!!!\n" +JSON.stringify(data?.data, ' ', 4))
+                    })
+                    .catch((e) => {
+                        this.experienceExperiencesLookupData.id = ""
+                        alert( "Error :(\n" +JSON.stringify(e?.response?.data?.status ?? e))
+                    })
+            },
+        }
+    })
+</script>
+
+
+</body>
+</html>

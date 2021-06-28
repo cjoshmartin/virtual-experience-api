@@ -44,16 +44,18 @@ func (chefInstance *ChefInstanceAccessor) CreateChef(chef Chef) (*mongo.InsertOn
 }
 
 func (chefInstance *ChefInstanceAccessor) FindChef(hexString string) (Chef, error) {
-	id := GetID(hexString)
 	var chef Chef
+	id, err := GetID(hexString)
+	if err != nil {
+		return chef, err
+	}
 
 	instance := chefInstance.instance
 	cancel, client := chefInstance.ConnectToChefsCollection()
 	defer cancel()
 	defer client.Disconnect(instance.ctx)
 
-	// not sure why this is not finding records
-	err := chefInstance.collection.FindOne(instance.ctx, bson.M{"_id": id}).Decode(&chef)
+	err = chefInstance.collection.FindOne(instance.ctx, bson.M{"_id": id}).Decode(&chef)
 
 	return chef, err
 }

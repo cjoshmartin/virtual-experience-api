@@ -43,7 +43,10 @@ func (orderInstance *OrderInstanceAccessor) CreateOrder(order Order) (*mongo.Ins
 }
 
 func (orderInstance *OrderInstanceAccessor) FindOrder(hexString string) (Order, error) {
-	id := GetID(hexString)
+	id, err := GetID(hexString)
+	if err != nil {
+		return Order{}, err
+	}
 
 	var order Order
 
@@ -52,13 +55,16 @@ func (orderInstance *OrderInstanceAccessor) FindOrder(hexString string) (Order, 
 	defer cancel()
 	defer client.Disconnect(instance.ctx)
 
-	err := orderInstance.collection.FindOne(instance.ctx, bson.M{"_id": id}).Decode(&order)
+	err = orderInstance.collection.FindOne(instance.ctx, bson.M{"_id": id}).Decode(&order)
 
 	return order, err
 }
 
 func (orderInstance *OrderInstanceAccessor) UpdateOrder(hexString string, data bson.D) (*mongo.UpdateResult, error) {
-	id := GetID(hexString)
+	id, err := GetID(hexString)
+	if err != nil {
+		return nil, err
+	}
 
 	instance := orderInstance.instance
 	cancel, client := orderInstance.ConnectToOrdersCollection()

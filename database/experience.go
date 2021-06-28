@@ -47,7 +47,10 @@ func (experienceInstance *ExperienceInstanceAccessor) CreateExperience(experienc
 
 
 func (experienceInstance *ExperienceInstanceAccessor) FindExperience(hexString string)(Experience, error){
-		id := GetID(hexString)
+		id, err := GetID(hexString)
+		if err != nil {
+			return Experience{}, err
+		}
 
 		var experience Experience
 
@@ -56,15 +59,20 @@ func (experienceInstance *ExperienceInstanceAccessor) FindExperience(hexString s
 		defer cancel()
 		defer client.Disconnect(instance.ctx)
 
-		err := experienceInstance.collection.FindOne(instance.ctx, bson.M{"_id": id}).Decode(&experience)
+		err = experienceInstance.collection.FindOne(instance.ctx, bson.M{"_id": id}).Decode(&experience)
 
 		return experience, err
 }
 
 func (experienceInstance *ExperienceInstanceAccessor) AddAttendee(userHexString string, experienceHexString string) (*mongo.UpdateResult, error)  {
-	userID := GetID(userHexString)
-	experienceID := GetID(experienceHexString)
-
+	userID, err := GetID(userHexString)
+	if err != nil {
+		return nil, err
+	}
+	experienceID, err := GetID(experienceHexString)
+	if err != nil {
+		return nil, err
+	}
 	instance := experienceInstance.instance
 	cancel, client := experienceInstance.ConnectToExperienceCollection()
 	defer cancel()
@@ -76,7 +84,10 @@ func (experienceInstance *ExperienceInstanceAccessor) AddAttendee(userHexString 
 }
 
 func (experienceInstance *ExperienceInstanceAccessor) GetExperienceByChefID(chefHexString string) ([]Experience, error){
-	chefID := GetID(chefHexString)
+	chefID, err := GetID(chefHexString)
+	if err != nil {
+		return []Experience{}, err
+	}
 	var experiences []Experience
 
 	instance := experienceInstance.instance
@@ -85,6 +96,28 @@ func (experienceInstance *ExperienceInstanceAccessor) GetExperienceByChefID(chef
 	defer client.Disconnect(instance.ctx)
 
 	cursor, err := experienceInstance.collection.Find(instance.ctx, bson.M{"chefid": chefID})
+
+	defer cursor.Close(instance.ctx)
+	for cursor.Next(instance.ctx) {
+		var experience Experience
+		if err = cursor.Decode(&experience); err != nil {
+			return experiences,err
+		}
+		experiences = append(experiences, experience)
+	}
+
+	return experiences, err
+}
+
+func (experienceInstance *ExperienceInstanceAccessor) FindAllExperiences() ([]Experience, error) {
+	var experiences []Experience
+
+	instance := experienceInstance.instance
+	cancel, client := experienceInstance.ConnectToExperienceCollection()
+	defer cancel()
+	defer client.Disconnect(instance.ctx)
+
+	cursor, err := experienceInstance.collection.Find(instance.ctx, bson.M{})
 
 	defer cursor.Close(instance.ctx)
 	for cursor.Next(instance.ctx) {

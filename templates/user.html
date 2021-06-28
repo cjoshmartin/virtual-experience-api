@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Actions</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+
+<h1>Users</h1>
+<ul>
+    <li><a href="/">home</a></li>
+    <li><a href="/user">user</a></li>
+    <li><a href="/experience">experience</a></li>
+    <li><a href="/chef">chef</a></li>
+    <li><a href="/order">order</a></li>
+
+</ul>
+
+<hr />
+
+<div style="border: 5px solid black;" id="app">
+    <div>
+        <h3><a href="/user/all"> Get All Users</a></h3>
+        <small><a href="https://chrome.google.com/webstore/detail/jsonview/chklaanhfefbnpoihckbnefhakgolnmc?hl=en"> JSON viewer plugin for chrome</a></small>
+    </div>
+    <div>
+        <h3>Create a User</h3>
+        <form @submit.prevent="createUser">
+            <div>
+                <label>Name Of User</label>
+                <input  type="text" required name="name_user" v-model="createUserData.name">
+            </div>
+            <div>
+                <label>User Email</label>
+                <input type="email" required name="email" v-model="createUserData.email">
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <div>
+        <h3>Get User By ID </h3>
+        <form @submit.prevent="lookupUserByID">
+            <div>
+                <label>User ID</label>
+                <input type="text" required v-model="userLookupData.id">
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const app = new Vue({
+        el: '#app',
+        delimiters: ['[[', ']]'],
+        data: {
+            createUserData: {
+                name: "",
+                email: ""
+            },
+            userLookupData: {
+                id: "",
+            }
+        },
+        methods: {
+            createUser(){
+                console.log(JSON.stringify(this.createUserData))
+                axios.post("/user/create", {
+                    ...this.createUserData,
+                }).then(({data}) =>{
+                    this.createUserData.name =""
+                    this.createUserData.email =""
+                    alert( "Success!!!\n" +JSON.stringify(data))
+                })
+                .catch((error) => {
+                    alert( "Error :(\n" +JSON.stringify(error.data))
+                })
+            },
+            lookupUserByID(){
+                axios.get(`/user/${this.userLookupData.id}`).then( (data)=> {
+                    this.userLookupData.id = ""
+                    alert( "Success!!!\n" +JSON.stringify(data?.data, ' ', 4))
+                })
+                    .catch((e) => {
+                        alert( "Error :(\n" +JSON.stringify(e?.response?.data?.status ?? e))
+                    })
+            }
+
+        }
+        })
+</script>
+
+
+</body>
+</html>

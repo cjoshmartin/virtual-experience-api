@@ -3,6 +3,7 @@ package webserver
 import (
 	"github.com/cjoshmartin/virtual-experience-api/database"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"net/mail"
 )
 func isValidEmail(email string) bool {
@@ -10,21 +11,13 @@ func isValidEmail(email string) bool {
 	return err == nil
 }
 
-func SetRoutes( router *gin.Engine) {
+func setRoutes( router *gin.Engine) {
 	mongoDatabase := database.StartDatebase()
 	orderCollection := database.OrderInit(mongoDatabase)
 	chefCollection := database.ChefInit(mongoDatabase)
 	userCollection := database.UserInit(mongoDatabase)
 	experienceCollection := database.ExperienceInit(mongoDatabase)
 
-	orders := router.Group("/order")
-	{
-		orders.POST("/create", CreateOrder(orderCollection, experienceCollection, chefCollection, userCollection))
-		idRoutes := orders.Group("/:id")
-		{
-			idRoutes.GET("", GetOrderByID(orderCollection))
-		}
-	}
 	chefs := router.Group("/chef")
 	{
 		chefs.POST("/create", CreateChef(chefCollection))
@@ -42,6 +35,8 @@ func SetRoutes( router *gin.Engine) {
 		{
 			idRoutes.GET("", GetUserByID(userCollection))
 		}
+
+		users.GET("/all", GetAllUsers(userCollection))
 	}
 	experiences := router.Group("/experience")
 	{
@@ -51,11 +46,41 @@ func SetRoutes( router *gin.Engine) {
 		{
 			idRoutes.GET("", GetExperienceByID(experienceCollection))
 		}
+		experiences.GET("/all", GetAllExperiences(experienceCollection))
 	}
+	orders := router.Group("/order")
+	{
+		orders.POST("/create", CreateOrder(orderCollection, experienceCollection, chefCollection, userCollection))
+		idRoutes := orders.Group("/:id")
+		{
+			idRoutes.GET("", GetOrderByID(orderCollection))
+		}
+	}
+}
+
+func setStaticRoutes(router *gin.Engine){
+	router.LoadHTMLGlob("templates/*")
+	router.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", nil)
+	})
+
+	router.GET("/user", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "user.html", nil)
+	})
+	router.GET("/experience", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "experience.html", nil)
+	})
+	router.GET("/chef", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "chef.html", nil)
+	})
+	router.GET("/order", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "order.html", nil)
+	})
 }
 
 func Start()   {
 	router := gin.Default()
-	SetRoutes(router)
+	setRoutes(router)
+	setStaticRoutes(router)
 	router.Run()
 }
