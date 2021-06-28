@@ -3,7 +3,6 @@ package webserver
 import (
 	"github.com/cjoshmartin/virtual-experience-api/database"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"time"
 )
@@ -17,7 +16,7 @@ func CreateOrder(orderCollection *database.OrderInstanceAccessor, experienceColl
 			return
 		}
 
-		order.PurchaseTime = primitive.Timestamp{T:uint32(time.Now().Unix())}
+		order.PurchaseTime = time.Now()
 
 		taxes := order.Taxes
 

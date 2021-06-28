@@ -14,7 +14,8 @@ services:
         build: .
         ports: 
             - 8080:8080
-        environment: 
+        restart: always
+        environment:
             DATABASE_CONTAINER_NAME: "db"
             MONGO_DB_NAME: "experiences_api"
         depends_on: 

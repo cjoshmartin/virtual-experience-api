@@ -5,14 +5,39 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
+	"time"
 )
+func IsBetween9and5(StartTime int) bool {
+	NineAm := 9
+	FivePM := 17
+	EndTime := StartTime + 1
 
-func CreateExperience(chefCollection *database.ChefInstanceAccessor, experienceCollection *database.ExperienceInstanceAccessor) gin.HandlerFunc {
+	DoesStartAfterNineAM := StartTime >= NineAm
+	DoesStartBeforeFivePM := StartTime < FivePM
+	DoesEndTimeEndBeforeFivePM := EndTime  < FivePM
+
+	return  DoesStartAfterNineAM &&  DoesStartBeforeFivePM && DoesEndTimeEndBeforeFivePM
+}
+
+	func CreateExperience(chefCollection *database.ChefInstanceAccessor, experienceCollection *database.ExperienceInstanceAccessor) gin.HandlerFunc {
 	return func (c *gin.Context) {
 		var experience database.Experience
 
 		if err := c.ShouldBindJSON(&experience); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
+			return
+		}
+
+
+		today := time.Now()
+		dateOfExperience := experience.DateOfExperience
+		if today.Equal(dateOfExperience) || today.After(dateOfExperience) {
+			c.JSON(http.StatusBadRequest, gin.H{"status": "Experiences have to be scheduled in advance"})
+			return
+		}
+
+		if !IsBetween9and5(dateOfExperience.Hour()){
+			c.JSON(http.StatusBadRequest, gin.H{"status": "Events must be scheduled after 9am, and before 5pm GMT. Event also have to end before 5pm GMT"})
 			return
 		}
 
