@@ -19,7 +19,7 @@ func SetRoutes( router *gin.Engine) {
 
 	orders := router.Group("/order")
 	{
-		orders.POST("/create", CreateOrder(orderCollection, experienceCollection, chefCollection))
+		orders.POST("/create", CreateOrder(orderCollection, experienceCollection, chefCollection, userCollection))
 		idRoutes := orders.Group("/:id")
 		{
 			idRoutes.GET("", GetOrderByID(orderCollection))

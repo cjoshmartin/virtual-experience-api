@@ -23,13 +23,13 @@ type Chef struct {
 	ID          primitive.ObjectID   `bson:"_id, omitempty"`
 	Name        string               `json:"name" bson:"name" binding:"required"`
 	Email	string `json:"email" bson:"email" binding:"required"`
-	Experiences []primitive.ObjectID `json:"experiences, omitempty" bson:"experiences, omitempty"`
 }
 
 type Order struct {
 	ID           primitive.ObjectID `json:"_id, omitempty" bson:"_id, omitempty"`
 	ExperienceId primitive.ObjectID `json:"experienceid, omitempty" bson:"experienceid, omitempty" binding:"required"`
 	ChefId       primitive.ObjectID `json:"chefid, omitempty" bson:"chefid, omitempty" binding:"required"`
+	UserID		 primitive.ObjectID`json:"userid, omitempty" bson:"userid, omitempty" binding:"required"`
 	PurchaseTime time.Time 			`json:"purchasetime" bson:"purchasetime"`
 	SubTotal     float32            `json:"subtotal" bson:"subtotal" binding:"required"`
 	Tip          float32            `json:"tip, omitempty" bson:"tip, omitempty"`

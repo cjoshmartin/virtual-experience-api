@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func CreateOrder(orderCollection *database.OrderInstanceAccessor, experienceCollection *database.ExperienceInstanceAccessor, chefCollection *database.ChefInstanceAccessor) gin.HandlerFunc{
+func CreateOrder(orderCollection *database.OrderInstanceAccessor, experienceCollection *database.ExperienceInstanceAccessor, chefCollection *database.ChefInstanceAccessor, userCollection *database.UserInstanceAccessor) gin.HandlerFunc{
 	return  func(c *gin.Context) {
 		var order database.Order
 
@@ -37,9 +37,21 @@ func CreateOrder(orderCollection *database.OrderInstanceAccessor, experienceColl
 		order.Total = total
 
 		experienceId := order.ExperienceId
-		_, err := experienceCollection.FindExperience(experienceId.Hex())
+		experience, err := experienceCollection.FindExperience(experienceId.Hex())
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"status": "Invalid experienceId"})
+			return
+		}
+
+		user, err := userCollection.FindUser(order.UserID.Hex())
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": "Invalid User ID"})
+			return
+		}
+
+		_, err = experienceCollection.AddAttendee(user.ID.Hex(), experience.ID.Hex())
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
 			return
 		}
 
