@@ -15,6 +15,25 @@ go build -o api
 docker-compose down
 ```
 
+## API Endpoints
+
+```
+[GIN-debug] POST   /chef/create              
+[GIN-debug] GET    /chef/:id                 
+[GIN-debug] GET    /chef/:id/experiences     
+[GIN-debug] GET    /chef/all                 
+[GIN-debug] POST   /user/create              
+[GIN-debug] GET    /user/:id                 
+[GIN-debug] GET    /user/all                 
+[GIN-debug] POST   /experience/create        
+[GIN-debug] POST   /experience/add-attendee  
+[GIN-debug] GET    /experience/:id           
+[GIN-debug] GET    /experience/all           
+[GIN-debug] POST   /order/create             
+[GIN-debug] GET    /order/:id                
+```
+
+
 ## Testing 
 
 ### Cypress tests 
