@@ -11,7 +11,7 @@ type Experience struct {
 	Name             string               `json:"name" bson:"name" binding:"required"`
 	Description      string               `json:"description, omitempty" bson:"description, omitempty"`
 	Attendees        []primitive.ObjectID `json:"attendees" bson:"attendees"`
-	DateOfExperience time.Time            `json:"dateofexperience" bson:"dateofexperience" binding:"required"`
+	DateAndTime time.Time            `json:"dateandtime" bson:"dateandtime" binding:"required"`
 	Price            float32              `json:"price" bson:"price" binding:"required"`
 }
 type User struct {
@@ -30,7 +30,7 @@ type Order struct {
 	ExperienceId primitive.ObjectID `json:"experienceid, omitempty" bson:"experienceid, omitempty" binding:"required"`
 	ChefId       primitive.ObjectID `json:"chefid, omitempty" bson:"chefid, omitempty" binding:"required"`
 	UserID		 primitive.ObjectID`json:"userid, omitempty" bson:"userid, omitempty" binding:"required"`
-	PurchaseTime time.Time 			`json:"purchasetime" bson:"purchasetime"`
+	DateAndTime time.Time 			`json:"dateandtime" bson:"dateandtime"`
 	SubTotal     float32            `json:"subtotal" bson:"subtotal" binding:"required"`
 	Tip          float32            `json:"tip, omitempty" bson:"tip, omitempty"`
 	Taxes        float32            `json:"taxes" bson:"taxes" binding:"required"`

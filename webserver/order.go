@@ -3,9 +3,22 @@ package webserver
 import (
 	"github.com/cjoshmartin/virtual-experience-api/database"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"time"
 )
+
+type OrderResult struct {
+	ID primitive.ObjectID `json:"id"`
+	Date time.Time `json:"date"`
+	Experience database.Experience `json:"experience"`
+	Chef database.Chef `json:"chef"`
+	HeadCount int `json:"head_count"`
+	SubTotal float32 `json:"sub_total"`
+	Taxes float32 `json:"taxes"`
+	Tip float32 `json:"tip"`
+	Total float32 `json:"total"`
+}
 
 func CreateOrder(orderCollection *database.OrderInstanceAccessor, experienceCollection *database.ExperienceInstanceAccessor, chefCollection *database.ChefInstanceAccessor, userCollection *database.UserInstanceAccessor) gin.HandlerFunc{
 	return  func(c *gin.Context) {
@@ -16,8 +29,7 @@ func CreateOrder(orderCollection *database.OrderInstanceAccessor, experienceColl
 			return
 		}
 
-		order.PurchaseTime = time.Now()
-
+		order.DateAndTime = time.Now()
 		taxes := order.Taxes
 
 		if taxes > 1  || taxes < 0 {
@@ -56,19 +68,33 @@ func CreateOrder(orderCollection *database.OrderInstanceAccessor, experienceColl
 		}
 
 		chefId := order.ChefId
-		_, err = chefCollection.FindChef(chefId.Hex())
+		chef, err := chefCollection.FindChef(chefId.Hex())
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"status": "Problem found with the chefid you have provided. Please check it and send again"})
 			return
 		}
 
-		result, err := orderCollection.CreateOrder(order)
+		order.ID = primitive.NewObjectID()
+
+		_, err = orderCollection.CreateOrder(order)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusOK, result)
+		output := OrderResult{
+			ID: order.ID,
+			Date:order.DateAndTime,
+			Experience : experience,
+			Chef: chef,
+			HeadCount: len(experience.Attendees),
+			SubTotal: order.SubTotal,
+			Tip: order.Tip,
+			Taxes: taxes,
+			Total: total,
+		}
+
+		c.JSON(http.StatusOK, output)
 	}
 }
 
@@ -83,25 +109,6 @@ func GetOrderByID(orderCollection *database.OrderInstanceAccessor) gin.HandlerFu
 
 		order, err := orderCollection.FindOrder(id)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
-			return
-		}
-
-		c.JSON(http.StatusOK, order)
-	}
-}
-
-func UpdateOrder(orderCollection *database.OrderInstanceAccessor) gin.HandlerFunc {
-	return  func(c *gin.Context) {
-		id := c.Param("id")
-		if len(id) < 1 {
-			c.JSON(http.StatusBadRequest, gin.H{"status": "No Id provided"})
-			return
-		}
-
-		var order database.Order
-
-		if err := c.ShouldBindJSON(&order); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
 			return
 		}

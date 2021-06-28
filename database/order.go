@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -39,8 +38,6 @@ func (orderInstance *OrderInstanceAccessor) CreateOrder(order Order) (*mongo.Ins
 	cancel, client := orderInstance.ConnectToOrdersCollection()
 	defer cancel()
 	defer client.Disconnect(instance.ctx)
-
-	order.ID = primitive.NewObjectID()
 
 	return orderInstance.collection.InsertOne(instance.ctx, order)
 }

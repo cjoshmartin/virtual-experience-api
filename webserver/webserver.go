@@ -23,7 +23,6 @@ func SetRoutes( router *gin.Engine) {
 		idRoutes := orders.Group("/:id")
 		{
 			idRoutes.GET("", GetOrderByID(orderCollection))
-			idRoutes.POST("/update", UpdateOrder(orderCollection))
 		}
 	}
 	chefs := router.Group("/chef")
@@ -32,8 +31,6 @@ func SetRoutes( router *gin.Engine) {
 		idRoutes := chefs.Group("/:id")
 		{
 			idRoutes.GET("", GetChefByID(chefCollection))
-			idRoutes.POST("/add-experience",  AddExperienceToAChef(chefCollection))
-			idRoutes.POST("/update", UpdateChef(chefCollection))
 		}
 		chefs.GET("/all", GetAllChefs(chefCollection))
 	}
@@ -43,7 +40,6 @@ func SetRoutes( router *gin.Engine) {
 		idRoutes := users.Group("/:id")
 		{
 			idRoutes.GET("", GetUserByID(userCollection))
-			idRoutes.POST("/update", UpdateUser(userCollection))
 		}
 	}
 	experiences := router.Group("/experience")
@@ -53,7 +49,6 @@ func SetRoutes( router *gin.Engine) {
 		idRoutes := experiences.Group("/:id")
 		{
 			idRoutes.GET("", GetExperienceByID(experienceCollection))
-			idRoutes.POST("/update", UpdateExperience(experienceCollection))
 		}
 	}
 }

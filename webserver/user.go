@@ -45,24 +45,5 @@ func GetUserByID(userCollection *database.UserInstanceAccessor) gin.HandlerFunc{
 		}
 
 		c.JSON(http.StatusOK, user)
-	}}
-
-// TODO Make this work
-func UpdateUser(userCollection *database.UserInstanceAccessor) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		id := c.Param("id")
-		_ = id
-		if len(id) < 1 {
-			c.JSON(http.StatusBadRequest, gin.H{"status": "No Id provided"})
-			return
-		}
-
-		var user database.User
-		if err := c.ShouldBindJSON(&user); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
-			return
-		}
-
-		c.JSON(http.StatusOK, user)
 	}
 }

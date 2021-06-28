@@ -30,7 +30,7 @@ func IsBetween9and5(StartTime int) bool {
 
 
 		today := time.Now()
-		dateOfExperience := experience.DateOfExperience
+		dateOfExperience := experience.DateAndTime
 		if today.Equal(dateOfExperience) || today.After(dateOfExperience) {
 			c.JSON(http.StatusBadRequest, gin.H{"status": "Experiences have to be scheduled in advance"})
 			return
@@ -70,25 +70,6 @@ func GetExperienceByID(experienceCollection *database.ExperienceInstanceAccessor
 
 		experience, err := experienceCollection.FindExperience(id)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
-			return
-		}
-
-		c.JSON(http.StatusOK, experience)
-	}
-}
-
-func UpdateExperience(experienceCollection *database.ExperienceInstanceAccessor) gin.HandlerFunc { // TODO: make this work
-	return func(c *gin.Context) { // update record
-		id := c.Param("id")
-		if len(id) < 1 {
-			c.JSON(http.StatusBadRequest, gin.H{"status": "No Id provided"})
-			return
-		}
-
-		var experience database.Experience
-
-		if err := c.ShouldBindJSON(&experience); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"status": err.Error()})
 			return
 		}
