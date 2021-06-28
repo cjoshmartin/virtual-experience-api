@@ -31,6 +31,7 @@ func SetRoutes( router *gin.Engine) {
 		idRoutes := chefs.Group("/:id")
 		{
 			idRoutes.GET("", GetChefByID(chefCollection))
+			idRoutes.GET("/experiences", GetAChefExperiences(chefCollection, experienceCollection))
 		}
 		chefs.GET("/all", GetAllChefs(chefCollection))
 	}

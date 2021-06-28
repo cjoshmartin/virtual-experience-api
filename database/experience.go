@@ -74,3 +74,26 @@ func (experienceInstance *ExperienceInstanceAccessor) AddAttendee(userHexString 
 	return result, err
 
 }
+
+func (experienceInstance *ExperienceInstanceAccessor) GetExperienceByChefID(chefHexString string) ([]Experience, error){
+	chefID := GetID(chefHexString)
+	var experiences []Experience
+
+	instance := experienceInstance.instance
+	cancel, client := experienceInstance.ConnectToExperienceCollection()
+	defer cancel()
+	defer client.Disconnect(instance.ctx)
+
+	cursor, err := experienceInstance.collection.Find(instance.ctx, bson.M{"chefid": chefID})
+
+	defer cursor.Close(instance.ctx)
+	for cursor.Next(instance.ctx) {
+		var experience Experience
+		if err = cursor.Decode(&experience); err != nil {
+			return experiences,err
+		}
+		experiences = append(experiences, experience)
+	}
+
+	return experiences, err
+}
